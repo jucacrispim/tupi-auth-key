@@ -12,7 +12,7 @@ envvars:
 #   - python3-pip
 
 steps:
-  - name: Setup test & docs env
+  - name: Setup test env
     command: make setupenv
 
   - name: Build
