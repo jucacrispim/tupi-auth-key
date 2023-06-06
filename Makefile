@@ -26,13 +26,11 @@ buildplugin:
 
 .PHONY: test # - Run all tests
 test:
-	$(GOBUILD)
 	$(GOTEST)
 
 .PHONY: functest # - Run all tests
-functest:
-	$(GOBUILD)
-	$(GOTEST)
+functest: build
+	$(GOFUNCTEST)
 
 .PHONY: setupenv # - Install needed tools for tests/docs
 setupenv:
