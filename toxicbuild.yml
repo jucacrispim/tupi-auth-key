@@ -18,8 +18,11 @@ steps:
   - name: Build
     command: make build
 
-  - name: Test & coverage
+  - name: Unit tests & coverage
     command: make coverage
+
+  - name: Functional tests
+    command: make functest
 
   # - name: build docs
   #   command: make docs

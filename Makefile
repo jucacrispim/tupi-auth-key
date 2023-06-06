@@ -2,6 +2,7 @@ GOCMD=go
 GOBUILD=$(GOCMD) build
 GOCLEAN=$(GOCMD) clean
 GOTEST=$(GOCMD) test -v ./...
+GOFUNCTEST=$(GOCMD) test ./functionaltests -v
 BIN_NAME=tupi-auth-key
 BUILD_DIR=build
 AUTH_PLUGIN_BIN=./$(BUILD_DIR)/auth_plugin.so
@@ -15,7 +16,7 @@ SCRIPTS_DIR=./scripts/
 
 
 .PHONY: build # - Creates the binary under the build/ directory
-build:
+build: buildplugin
 	$(GOBUILD) $(OUTFLAG)
 
 
@@ -25,6 +26,11 @@ buildplugin:
 
 .PHONY: test # - Run all tests
 test:
+	$(GOBUILD)
+	$(GOTEST)
+
+.PHONY: functest # - Run all tests
+functest:
 	$(GOBUILD)
 	$(GOTEST)
 

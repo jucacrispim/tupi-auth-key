@@ -36,15 +36,17 @@ func Init(domain string, conf *map[string]any) error {
 func Authenticate(r *http.Request, domain string, conf *map[string]any) bool {
 	db, exists := DBMAP[domain]
 	if !exists {
-		log.Println("[ERROR] no db for domain " + domain)
-		return false
+		db, exists = DBMAP["default"]
+		if !exists {
+			log.Println("[ERROR] no db for domain " + domain)
+			return false
+		}
 	}
 	auth := r.Header.Get("Authorization")
 	if !strings.HasPrefix(auth, "Key ") {
 		return false
 	}
 	key := strings.Replace(auth, "Key ", "", 1)
-
 	// create sha512 hash to check against the db value
 	hash := sha512.New()
 	_, err := hash.Write([]byte(key))
