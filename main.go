@@ -7,8 +7,11 @@ import (
 	"crypto/sha512"
 	"database/sql"
 	"encoding/hex"
+	"flag"
 	"fmt"
 	"math/big"
+	"os"
+	"text/tabwriter"
 )
 
 const chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_/"
@@ -50,5 +53,83 @@ func addKey(name string, domain string, key string, db *sql.DB) error {
 
 func list(db *sql.DB) {
 	q := "select id, name, domain from tupi_auth_key"
-	db.Query(q)
+	rows, err := db.Query(q)
+	if err != nil {
+		panic(err.Error())
+	}
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 4, ' ', tabwriter.AlignRight)
+	out := "name\tdomain\tkey\t"
+	fmt.Fprintln(w, out)
+	for rows.Next() {
+		var id int
+		var name string
+		var domain string
+		rows.Scan(&id, &name, &domain)
+		out := fmt.Sprintf("%s\t%s\t%s\t", name, domain, "**********")
+		fmt.Fprintln(w, out)
+	}
+	w.Flush()
+}
+
+func add(db *sql.DB, name string, domain string) {
+	key, err := genKey(16)
+	if err != nil {
+		panic(err.Error())
+	}
+	err = addKey(name, domain, key, db)
+	if err != nil {
+		panic(err.Error())
+	}
+	println(key)
+}
+
+func rm(db *sql.DB, name string) {
+	stmt := fmt.Sprintf("delete from tupi_auth_key where name = \"%s\"", name)
+	_, err := db.Exec(stmt)
+	if err != nil {
+		panic(err.Error())
+	}
+
+}
+
+func addCliFlags() (string, string) {
+	name := flag.String("name", "", "name for the key.")
+	domain := flag.String("domain", "", "domain for the key.")
+	args := os.Args[2:]
+	flag.CommandLine.Parse(args)
+	return *name, *domain
+}
+
+func rmCliFlags() string {
+	name := flag.String("name", "", "name for the key.")
+	args := os.Args[2:]
+	flag.CommandLine.Parse(args)
+	return *name
+}
+
+func main() {
+	if len(os.Args) <= 1 {
+		panic("wrong usage")
+	}
+	domain := "default"
+	uri := "testdb.sqlite"
+	driverName := "sqlite"
+	setupDB(driverName, uri, domain)
+	db := DBMAP[domain]
+	action := os.Args[1]
+	switch action {
+	case "list":
+		list(db)
+
+	case "add":
+		name, domain := addCliFlags()
+		add(db, name, domain)
+
+	case "rm":
+		name := rmCliFlags()
+		rm(db, name)
+
+	default:
+		panic("bad action")
+	}
 }

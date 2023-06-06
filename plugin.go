@@ -29,16 +29,8 @@ func Init(domain string, conf *map[string]any) error {
 	if !ok {
 		return errors.New("[tupi-auth-key] Invalid uri on config!")
 	}
-	db, err := sql.Open(driverName, connUriStr)
-	if err != nil {
-		return err
-	}
-	err = createTable(db)
-	if err != nil {
-		return err
-	}
-	DBMAP[domain] = db
-	return nil
+	err := setupDB(driverName, connUriStr, domain)
+	return err
 }
 
 func Authenticate(r *http.Request, domain string, conf *map[string]any) bool {
@@ -90,6 +82,19 @@ func Authenticate(r *http.Request, domain string, conf *map[string]any) bool {
 	return false
 }
 
+func setupDB(driverName string, connUri string, domain string) error {
+	db, err := sql.Open(driverName, connUri)
+	if err != nil {
+		return err
+	}
+	err = createTable(db)
+	if err != nil {
+		return err
+	}
+	DBMAP[domain] = db
+	return nil
+
+}
 func createTable(db *sql.DB) error {
 	createTBStmt := `
 CREATE TABLE IF NOT EXISTS tupi_auth_key (
