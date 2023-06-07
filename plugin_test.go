@@ -52,18 +52,22 @@ func TestAuthenticate(t *testing.T) {
 		ok          bool
 		headerKey   string
 		headerValue string
+		status      int
 	}{
-		{"poraodojuca.dev", false, "Authorization", "Key 456"},
-		{"poraodojuca.dev", false, "Authorization", "123"},
-		{"bad.domain", false, "Authorization", "Key 123"},
-		{"poraodojuca.dev", true, "Authorization", "Key 123"},
+		{"poraodojuca.dev", false, "Authorization", "Key 456", 403},
+		{"poraodojuca.dev", false, "Authorization", "123", 403},
+		{"bad.domain", false, "Authorization", "Key 123", 500},
+		{"poraodojuca.dev", true, "Authorization", "Key 123", 200},
 	}
 	for _, test := range tests {
 		req, _ := http.NewRequest("GET", "/", nil)
 		req.Header.Add(test.headerKey, test.headerValue)
-		r := Authenticate(req, test.domain, nil)
+		r, status := Authenticate(req, test.domain, nil)
 		if r != test.ok {
 			t.Fatalf("Bad error!")
+		}
+		if status != test.status {
+			t.Fatalf("bad status %d", status)
 		}
 	}
 }

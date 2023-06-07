@@ -33,18 +33,18 @@ func Init(domain string, conf *map[string]any) error {
 	return err
 }
 
-func Authenticate(r *http.Request, domain string, conf *map[string]any) bool {
+func Authenticate(r *http.Request, domain string, conf *map[string]any) (bool, int) {
 	db, exists := DBMAP[domain]
 	if !exists {
 		db, exists = DBMAP["default"]
 		if !exists {
 			log.Println("[ERROR] no db for domain " + domain)
-			return false
+			return false, http.StatusInternalServerError
 		}
 	}
 	auth := r.Header.Get("Authorization")
 	if !strings.HasPrefix(auth, "Key ") {
-		return false
+		return false, http.StatusForbidden
 	}
 	key := strings.Replace(auth, "Key ", "", 1)
 	// create sha512 hash to check against the db value
@@ -53,7 +53,7 @@ func Authenticate(r *http.Request, domain string, conf *map[string]any) bool {
 	if err != nil {
 		// notest
 		log.Println("[ERROR] " + err.Error())
-		return false
+		return false, http.StatusInternalServerError
 	}
 	hashedPwd := hash.Sum(nil)
 	pwdStr := hex.EncodeToString(hashedPwd)
@@ -62,7 +62,7 @@ func Authenticate(r *http.Request, domain string, conf *map[string]any) bool {
 	if err != nil {
 		// notest
 		log.Println("[ERROR] " + err.Error())
-		return false
+		return false, http.StatusInternalServerError
 	}
 	defer result.Close()
 	for result.Next() {
@@ -71,17 +71,17 @@ func Authenticate(r *http.Request, domain string, conf *map[string]any) bool {
 		if err != nil {
 			// notest
 			log.Println("[ERROR] unable to scan db result")
-			return false
+			return false, http.StatusInternalServerError
 		}
 		if domain == keyDomain {
-			return true
+			return true, http.StatusOK
 		}
 	}
 	if result.Err() != nil {
 		// notest
 		log.Println("[ERROR] " + result.Err().Error())
 	}
-	return false
+	return false, http.StatusForbidden
 }
 
 func setupDB(driverName string, connUri string, domain string) error {
