@@ -27,7 +27,7 @@ func TestTupi(t *testing.T) {
 		status int
 	}{
 		{key, 201},
-		{"bad", 401},
+		{"bad", 403},
 	}
 
 	buf := new(bytes.Buffer)

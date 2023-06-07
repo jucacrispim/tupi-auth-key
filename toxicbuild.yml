@@ -16,7 +16,7 @@ steps:
     command: make setupenv
 
   - name: Install tupi
-    command: go install github.com/jucacrispim/tupi/cmd/tupi@v0.6.3
+    command: go install github.com/jucacrispim/tupi/cmd/tupi@v0.7.0
 
   - name: Build
     command: make build
