@@ -93,30 +93,71 @@ func rm(db *sql.DB, name string) {
 }
 
 func addCliFlags() (string, string) {
-	name := flag.String("name", "", "name for the key.")
-	domain := flag.String("domain", "", "domain for the key.")
-	args := os.Args[2:]
-	flag.CommandLine.Parse(args)
+	addCmd := flag.NewFlagSet("add", flag.ExitOnError)
+	name := addCmd.String("name", "", "name for the new key.")
+	domain := addCmd.String("domain", "", "domain for the new key.")
+	args := os.Args[3:]
+	addCmd.Parse(args)
 	return *name, *domain
 }
 
 func rmCliFlags() string {
-	name := flag.String("name", "", "name for the key.")
-	args := os.Args[2:]
+
+	rmCmd := flag.NewFlagSet("rm", flag.ExitOnError)
+	name := rmCmd.String("name", "", "name for the key to be removed.")
+
+	args := os.Args[3:]
 	flag.CommandLine.Parse(args)
 	return *name
 }
 
+func getSubCommandsHelp() string {
+	return `Subcommands are:
+  add
+  list
+  rm`
+}
+
+func printSubCommandsHelp() {
+	msg := `
+Bad subcommand %s.
+
+%s
+`
+	cmds := getSubCommandsHelp()
+	fmt.Println(fmt.Sprintf(msg, os.Args[2], cmds))
+}
+
+func printHelp() {
+	msg := `
+Usage of %s:
+
+%s DBCONN_URI SUBCOMMAND [FLAGS]
+
+Where DBCONN_URI is a connection string to the database.
+
+%s
+`
+	cmds := getSubCommandsHelp()
+	fmt.Println(fmt.Sprintf(msg, os.Args[0], os.Args[0], cmds))
+}
 func main() {
-	if len(os.Args) <= 1 {
-		panic("wrong usage")
+
+	if len(os.Args) < 3 {
+		printHelp()
+		os.Exit(1)
 	}
-	domain := "default"
-	uri := "testdb.sqlite"
+
+	d := "default"
+	uri := os.Args[1]
 	driverName := "sqlite"
-	setupDB(driverName, uri, domain)
-	db := DBMAP[domain]
-	action := os.Args[1]
+	err := setupDB(driverName, uri, d)
+	if err != nil {
+		panic("Error connecting to db " + err.Error())
+	}
+	db := DBMAP[d]
+
+	action := os.Args[2]
 	switch action {
 	case "list":
 		list(db)
@@ -130,6 +171,7 @@ func main() {
 		rm(db, name)
 
 	default:
-		panic("bad action")
+		printSubCommandsHelp()
+		os.Exit(1)
 	}
 }
