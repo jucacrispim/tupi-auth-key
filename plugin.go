@@ -63,7 +63,7 @@ func Authenticate(r *http.Request, domain string, conf *map[string]any) (bool, i
 	if !strings.HasPrefix(auth, "Key ") {
 		return false, http.StatusUnauthorized
 	}
-	key := strings.Replace(auth, "Key ", "", 1)
+	key := strings.TrimSpace(strings.Replace(auth, "Key ", "", 1))
 	// create sha512 hash to check against the db value
 	hash := sha512.New()
 	_, err := hash.Write([]byte(key))
