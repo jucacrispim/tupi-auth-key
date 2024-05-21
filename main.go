@@ -100,6 +100,42 @@ func add(db *sql.DB, name string, domain string) {
 	println(key)
 }
 
+func check(db *sql.DB, key string, domain string) {
+	// create sha512 hash to check against the db value
+	hash := sha512.New()
+	_, err := hash.Write([]byte(key))
+	if err != nil {
+		panic(err.Error())
+	}
+	hashedPwd := hash.Sum(nil)
+	pwdStr := hex.EncodeToString(hashedPwd)
+
+	stmt := fmt.Sprintf("select domain from tupi_auth_key where key = \"%s\"", pwdStr)
+	result, err := db.Query(stmt)
+	if err != nil {
+		// notest
+		panic(err.Error())
+	}
+	defer result.Close()
+	for result.Next() {
+		var keyDomain string
+		err := result.Scan(&keyDomain)
+		if err != nil {
+			// notest
+			panic(err.Error())
+		}
+		if domain == keyDomain {
+			fmt.Println("Ok")
+		} else {
+			fmt.Println("bad")
+		}
+	}
+	if result.Err() != nil {
+		panic(err.Error())
+	}
+
+}
+
 func rm(db *sql.DB, name string) {
 	stmt := fmt.Sprintf("delete from tupi_auth_key where name = \"%s\"", name)
 	_, err := db.Exec(stmt)
@@ -128,11 +164,21 @@ func rmCliFlags() string {
 	return *name
 }
 
+func checkCliFlags() (string, string) {
+	addCmd := flag.NewFlagSet("add", flag.ExitOnError)
+	key := addCmd.String("key", "", "key to check")
+	domain := addCmd.String("domain", "", "valid domain for the key")
+	args := os.Args[3:]
+	addCmd.Parse(args)
+	return *key, *domain
+}
+
 func getSubCommandsHelp() string {
 	return `Subcommands are:
   add
   list
-  rm`
+  rm
+  check`
 }
 
 func printSubCommandsHelp() {
@@ -186,6 +232,10 @@ func main() {
 	case "rm":
 		name := rmCliFlags()
 		rm(db, name)
+
+	case "check":
+		key, domain := checkCliFlags()
+		check(db, key, domain)
 
 	default:
 		printSubCommandsHelp()
