@@ -31,7 +31,7 @@ To use the plugin with tupi, in  your config file put:
 ...
 AuthPlugin = "/path/to/auth_plugin.so"
 AuthPluginConf = {
-    "uri": "/path/to/db.sqlite?the=option&other=value"
+    "uri" = "/path/to/db.sqlite?the=option&other=value"
 }
 ...
 ```
