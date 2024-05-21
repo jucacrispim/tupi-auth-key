@@ -1,7 +1,7 @@
 GOCMD=go
-GOBUILD=$(GOCMD) build
+GOBUILD=$(GOCMD) build -trimpath
 GOCLEAN=$(GOCMD) clean
-GOTEST=$(GOCMD) test -v ./...
+GOTEST=$(GOCMD) test -v ./... -trimpath
 GOFUNCTEST=$(GOCMD) test ./functionaltests -v
 BIN_NAME=tupi-auth-key
 BUILD_DIR=build
