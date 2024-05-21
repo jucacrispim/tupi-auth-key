@@ -28,6 +28,7 @@ func TestTupi(t *testing.T) {
 	}{
 		{key, 201},
 		{"bad", 403},
+		{"", 401},
 	}
 
 	buf := new(bytes.Buffer)
@@ -49,7 +50,9 @@ func TestTupi(t *testing.T) {
 		if err != nil {
 			t.Fatalf(err.Error())
 		}
-		req.Header.Add("Authorization", "Key "+test.key)
+		if test.key != "" {
+			req.Header.Add("Authorization", "Key "+test.key)
+		}
 		req.Header.Add("Content-Type", "multipart/form-data; boundary="+boundary)
 
 		c := http.Client{}
@@ -59,7 +62,7 @@ func TestTupi(t *testing.T) {
 		}
 		defer r.Body.Close()
 		if r.StatusCode != test.status {
-			t.Fatalf("Bad status %d", r.StatusCode)
+			t.Fatalf("Bad status %d. Expected %d", r.StatusCode, test.status)
 		}
 	}
 }

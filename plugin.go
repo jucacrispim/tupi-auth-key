@@ -61,7 +61,7 @@ func Authenticate(r *http.Request, domain string, conf *map[string]any) (bool, i
 	}
 	auth := r.Header.Get("Authorization")
 	if !strings.HasPrefix(auth, "Key ") {
-		return false, http.StatusForbidden
+		return false, http.StatusUnauthorized
 	}
 	key := strings.Replace(auth, "Key ", "", 1)
 	// create sha512 hash to check against the db value
@@ -97,6 +97,7 @@ func Authenticate(r *http.Request, domain string, conf *map[string]any) (bool, i
 	if result.Err() != nil {
 		// notest
 		log.Println("[ERROR] " + result.Err().Error())
+		return false, http.StatusInternalServerError
 	}
 	return false, http.StatusForbidden
 }

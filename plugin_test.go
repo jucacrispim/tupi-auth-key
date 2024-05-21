@@ -55,7 +55,7 @@ func TestAuthenticate(t *testing.T) {
 		status      int
 	}{
 		{"poraodojuca.dev", false, "Authorization", "Key 456", 403},
-		{"poraodojuca.dev", false, "Authorization", "123", 403},
+		{"poraodojuca.dev", false, "Authorization", "123", 401},
 		{"bad.domain", false, "Authorization", "Key 123", 500},
 		{"poraodojuca.dev", true, "Authorization", "Key 123", 200},
 	}
