@@ -91,6 +91,7 @@ func Authenticate(r *http.Request, domain string, conf *map[string]any) (bool, i
 			return false, http.StatusInternalServerError
 		}
 		if domain == keyDomain {
+			r.Header.Set("AUTH_TYPE", "token")
 			return true, http.StatusOK
 		}
 	}
