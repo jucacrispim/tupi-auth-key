@@ -100,6 +100,14 @@ func add(db *sql.DB, name string, domain string) {
 	println(key)
 }
 
+func addKeyCmd(db *sql.DB, name string, domain string, key string) {
+	err := addKey(name, domain, key, db)
+	if err != nil {
+		panic(err.Error())
+	}
+	println(key)
+}
+
 func check(db *sql.DB, key string, domain string) {
 	// create sha512 hash to check against the db value
 	hash := sha512.New()
@@ -154,6 +162,16 @@ func addCliFlags() (string, string) {
 	return *name, *domain
 }
 
+func addKeyCliFlags() (string, string, string) {
+	addCmd := flag.NewFlagSet("add", flag.ExitOnError)
+	name := addCmd.String("name", "", "name for the new key.")
+	domain := addCmd.String("domain", "", "domain for the new key.")
+	key := addCmd.String("key", "", "the key")
+	args := os.Args[3:]
+	addCmd.Parse(args)
+	return *name, *domain, *key
+}
+
 func rmCliFlags() string {
 
 	rmCmd := flag.NewFlagSet("rm", flag.ExitOnError)
@@ -176,6 +194,7 @@ func checkCliFlags() (string, string) {
 func getSubCommandsHelp() string {
 	return `Subcommands are:
   add
+  add-key
   list
   rm
   check`
@@ -236,6 +255,10 @@ func main() {
 	case "check":
 		key, domain := checkCliFlags()
 		check(db, key, domain)
+
+	case "add-key":
+		name, domain, key := addKeyCliFlags()
+		addKeyCmd(db, name, domain, key)
 
 	default:
 		printSubCommandsHelp()
